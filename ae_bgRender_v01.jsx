@@ -8,15 +8,15 @@ This small script creates a panel with a button and a slider:
 Upon pressing the button the current items in the render queue will be rendered in the background.
 Neat.
 */
-listStuff(Folder)
 function ae_backgroundRender(thisObj){
     var debug = false;
     var os_name = system.osName
     var ae_version = app.buildName.slice(0,4)
-    var ae_install_path = Folder.appPackage.fsName
+    var ae_install_path = Folder(Folder.appPackage).parent.fsName
+    $.writeln('ae_install_path: ',ae_install_path)
     var script_file_path = (File($.fileName)).path
     var script_version = 1.0
-    var thisProj = File(app.project.file);
+    var thisProj = File(app.project.file).fsName;
     var RQ = app.project.renderQueue
     //== MAC OS METHODS ==//
     function osx_Render_RQ(){
@@ -24,8 +24,8 @@ function ae_backgroundRender(thisObj){
         function str(inp){
             return '"'+String(inp)+'"';
         }
-        var aePath = ae_install_path.fsName.toString()+"/aerender";
-        var prjPath = File(app.project.file).fsName.toString();     //path to After Effects [version]/aerender
+        var aePath = ae_install_path.toString()+"/aerender";
+        var prjPath = thisProj.toString();     //path to After Effects [version]/aerender
         var system_run = "osascript -e' \n"                         //current project's ~/path/filename.aep
             system_run+= 'tell application "Terminal" \n'           //pass the following to Terminal
             system_run+= 'set aePath to'+str(aePath)+"\n"           //set path of aerender, enclosed in double quotes
@@ -38,6 +38,7 @@ function ae_backgroundRender(thisObj){
             system_run+= " end tell'"                               //end of AppleScript
         app.project.save();
         var call = system.callSystem(system_run)                    //pass the system_run to the Terminal
+        $.writeln(call)
         return call;
     }
     function osx_Cancel_RQ(){
@@ -53,6 +54,7 @@ function ae_backgroundRender(thisObj){
             // stringify something in strong quotes
             return '"'+String(inp)+'"' ;
         }
+        alert('Windows not yet supported.')
         var aePath;
     }
     function win_Cancel_RQ(){
@@ -74,8 +76,10 @@ function ae_backgroundRender(thisObj){
                 }else{
                     os_name = os_name.toLowerCase()                 // which system is this?
                     if(os_name=="macos"){                           // Mac
+                        write('Starting Terminal')
                         osx_Render_RQ()
                     }else{                                          // Windows
+                        write('Starting Command Line')
                         win_Render_RQ()
                     }
                 }
@@ -84,9 +88,28 @@ function ae_backgroundRender(thisObj){
             }
         }
     }
+    function stop_it(){
+        if(!gAECommandLineRenderer instanceof Object){              // check if the command line renderer provided by Adobe exists
+            alert("Sowwy...\nThis script won't run on this installation of After Effects.")
+        }else{
+            try{
+                os_name = os_name.toLowerCase()                 // which system is this?
+                if(os_name=="macos"){                           // Mac
+                    write('Starting Terminal')
+                    osx_Cancel_RQ()
+                }else{                                          // Windows
+                    write('Starting Command Line')
+                    win_Cancel_RQ()
+                }
+            }catch(err){
+                $.writeln("Line ",err.line,": ",err)
+            }
+        }
+    }
 
     function GUI(thisObj){
-        var parent = (thisObj instanceof Panel)? thisObj : new Window("palette", "Background Renderer", undefined,{borderless:false}, {resizable:true}) ;
+        var gs = 2 // global spacing for this gui
+        var parent = (thisObj instanceof Panel)? thisObj : new Window("dialog", "Background Renderer", undefined,{borderless:false}, {resizable:true}) ;
             parent.onResizing = function(){
                 parent.layout.layout(true)
                 parent.layout.resize()
@@ -96,9 +119,10 @@ function ae_backgroundRender(thisObj){
             mWin.preferredSize = [100,50]
             mWin.alignment = ['fill','fill']
             mWin.alignChildren = ['left','top']
+            mWin.margins = [0,0,0,0]
         var sGrp = mWin.add('group')
             sGrp.orientation = 'row'
-            sGrp.spacing = 2
+            sGrp.spacing = gs
         var sHead = sGrp.add('StaticText',undefined,'RAM: ')
         var sDispVal = sGrp.add('StaticText',undefined,'0')
             sDispVal.characters = 3
@@ -111,11 +135,22 @@ function ae_backgroundRender(thisObj){
                 sDispVal.text = Math.ceil(slider.value)
             }
             sDispVal.text = slider.value
-        var rBtn = mWin.add('Button',undefined,"BG Render")
+        var bGrp = mWin.add('group')
+            bGrp.orientation = 'row'
+            bGrp.alignment = ['fill','top']
+            bGrp.alignChildren = ['left','top']
+            bGrp.margins = [0,0,0,0]
+            bGrp.spacing = gs
+        var rBtn = bGrp.add('Button',undefined,"BG Render")
             rBtn.alignment = ['fill','top']
             rBtn.minimumSize = [50,25]
-            rBtn.helpTip = "Render all items in the render queue\nin the background with a memory limit."
+            rBtn.helpTip = "Render all items in the render queue\nin the background (with a memory limit (soon))."
             rBtn.onClick = function(){ gogogogo(slider.value) }
+        var rCnclBtn = bGrp.add('Button',undefined,'Cncl Render')
+            rCnclBtn.helpTip = (os_name.toLowerCase()=="macos") ? "Quits the Terminal" : "Quits the Command Line"
+            rCnclBtn.onClick = function(){
+                stop_it()
+            }
         return parent
     }
 
