@@ -25,7 +25,7 @@ function ae_backgroundRender(thisObj){
             return '"'+String(inp)+'"';
         }
         var aePath = ae_install_path.toString()+"/aerender";
-        var prjPath = thisProj.toString();     //path to After Effects [version]/aerender
+        var prjPath = thisProj.toString();                          //path to After Effects [version]/aerender
         var system_run = "osascript -e' \n"                         //current project's ~/path/filename.aep
             system_run+= 'tell application "Terminal" \n'           //pass the following to Terminal
             system_run+= 'set aePath to'+str(aePath)+"\n"           //set path of aerender, enclosed in double quotes
@@ -49,13 +49,16 @@ function ae_backgroundRender(thisObj){
 
     //== WIN METHODS ==//
     function win_Render_RQ(){
-        app.project.save()
+        //app.project.save()
         function str(inp){
             // stringify something in strong quotes
             return '"'+String(inp)+'"' ;
         }
-        alert('Windows not yet supported.')
-        var aePath;
+        var aePath = ae_install_path.toString()+"\\aerender";
+        var prjPath = thisProj.toString();                          //path to After Effects [version]/aerender
+        $.writeln('aePath: ',aePath)
+        $.writeln('prjPath: ',prjPath)
+        //alert('Windows not yet supported.')
     }
     function win_Cancel_RQ(){
         // quits the command line
