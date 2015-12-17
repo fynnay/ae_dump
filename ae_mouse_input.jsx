@@ -5,6 +5,7 @@ function ae_mouse_input_tester(thisObj){
 	//== GUI ==//
 	function GUI(thisObj){
 		var builder = thisObj instanceof Panel ? thisObj : new Window("dialog", "Background Renderer", undefined,{borderless:false}, {resizable:true}) ;
+			//builder.orientation = 'stack'
 		builder.onResizing = function(){
 			builder.layout.layout(true)
 			builder.layout.resize();
@@ -20,9 +21,16 @@ function ae_mouse_input_tester(thisObj){
 			scrl.alignment = ['fill','bottom']
 		var log = mWin.add('StaticText',undefined,"console")
 			log.alignment = ['fill','bottom']
+		var sLink = builder.add('scrollbar')
+			sLink.alignment = 'fill'
+			sLink.minValue = 0
+			sLink.maxValue = 100
 
 		//-- EVENT HANDLERS --//
 		//- Main Window
+		// keyboard listener
+		builder.addEventListener("keydown", keyPress, true);
+		function keyPress(event){ log.text = event }
 		// what's under the cursor
 		mWin.addEventListener("mouseover",function(event){
 			var target = event.target.toString()
@@ -63,12 +71,16 @@ function ae_mouse_input_tester(thisObj){
 			}
 		})
 		// mouse wheel NOT WORKING!!!!
-		mWin.addEventListener("scrollwheel",function(event){
+		mWin.addEventListener("mousewheel",function(event){
 			log.text = event
 		})
 		//- Scrollbar
 		scrl.onChange = function(){
-			log.text = scrl.value
+			log.text = this.event
+		}
+		sLink.onChange = function(){
+			log.text = this.value
+			scrl.value = this.value
 		}
 		return builder;
 	}
