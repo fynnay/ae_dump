@@ -1,5 +1,5 @@
 {
-function checkSupport(fold){
+function awesomeImport(fold){
 // recursively go through all files and folders in a folder and import video as video and framestacks as sequences
     // VARIABLES
     var files = fold instanceof Folder ? fold.getFiles() : Folder(fold).getFiles()
@@ -26,7 +26,7 @@ function checkSupport(fold){
         
         if(curFile instanceof Folder){
             $.writeln("R E C U R S I O N: ",curFile.name)
-            checkSupport(curFile)  // recursion
+            awesomeImport(curFile)  // recursion
         }
 
         // Check if filetype is supported
@@ -50,7 +50,7 @@ function checkSupport(fold){
             offset+=1;
         }
 
-        // Check remaining files and import respectively as video, image sequence or still.
+        // I M P O R T   F I L E S
         if(impOpt!=null && impOpt.canImportAs(ImportAsType.FOOTAGE)){
             // check for incrementing numbers in filename
             /*
@@ -67,7 +67,7 @@ function checkSupport(fold){
             
             see this site for syntax: http://www.w3schools.com/jsref/jsref_obj_regexp.asp
             */
-            var patt = /[^\D]*[0-9]+(?=\.[a-z]+$)/i;               // see above for explanation of pattern
+            var patt = /[^\D]*[0-9]+(?=\.[0-9a-z]+$)/i;               // see above for explanation of pattern
             var seqCheck = false;
             var intCheck = parseInt(patt.exec(curFileNom),10);     // Run the RegExp "patt" and remove leading zeros. This is to check if the 5 files have incrementing numbers.
             $.writeln("initial rxResult:",intCheck)
@@ -78,8 +78,7 @@ function checkSupport(fold){
                 for(;x<files.length && x<i+10;){                        // Check if the next five files are related.
                     var seqFileNom = decodeURIComponent(files[x].name) // Get filename with extension and remove %20, where there should be spaces. Getting it with extension makes it easier to finde the frame number if there is one.
                     var rxResult = parseInt(patt.exec(seqFileNom),10)  // Run the RegExp "patt" and remove leading zeros.
-                    $.writeln("rxResult: ",rxResult)
-                    if(rxResult!=null && intCheck-rxResult==-1){       // Check if this file increments the previous one by 1.
+                    if(rxResult!=null && x==i+10 && intCheck-rxResult==-1){       // Check if this file increments the previous one by 1.
                         seqCheck = true
                         intCheck = rxResult;
                     }else{
@@ -119,8 +118,7 @@ function checkSupport(fold){
 
 }
 
-var test = "/Users/fynn/Desktop/cuba"
-
-checkSupport(test)
+var uInput = Folder.selectDialog("choose a folder in which too look for footage to import.")
+awesomeImport(uInput)
 
 }
