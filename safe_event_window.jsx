@@ -24,7 +24,7 @@ Drawbacks:
 */
 
 function safeEventWindow(thisObj){
-	var win = thisObj instanceof Panel ? thisObj : new Window('palette',"Modal Dialog Crasher",undefined,{resizable:false})
+	var win = thisObj instanceof Panel ? thisObj : new Window('palette',"Safe Event Window",undefined,{resizable:true})
 		win.alignChildren = ['fill','fill']
 	var mGrp = win.add('panel',undefined,'PANEL!')
 		mGrp.minimumSize = [200,200]
@@ -36,9 +36,6 @@ function safeEventWindow(thisObj){
 		txt1.hide()
 
 	// FUNCTIONS
-	function uiInfo(){
-		$.writeln("ui suppressed: ",app.isUISuppressed)
-	}
 	function switchText(event){
 		var state = txt1.visible
 		if(state) txt1.hide()
@@ -51,29 +48,19 @@ function safeEventWindow(thisObj){
 	}
 	
 	// EVENT HANDLERS & FUNCTIONALITY
-	win.addEventListener("keydown",startMouseListeners)
-	win.addEventListener("keyup",stopMouseListeners)
 
 	function startMouseListeners(event){
-		var shiftK = event.getModifierState("Shift")
-		if(shiftK != true) return;
 		mGrp.addEventListener("mouseover",switchText)
 		mGrp.addEventListener("mouseout",switchText)
 	}
 	function stopMouseListeners(event){
-		var shiftK = event.getModifierState("Shift")
-		if(shiftK != false) return;
 		mGrp.removeEventListener("mouseover",switchText)
 		mGrp.removeEventListener("mouseout",switchText)
 	}
 
-	function stopAllListeners(){
-		win.removeEventListener("keydown",startMouseListeners)
-		win.removeEventListener("keyup",stopMouseListeners)
-		mGrp.removeEventListener("mouseover",switchText)
-		mGrp.removeEventListener("mouseout",switchText)
-	}
-	
+	win.onActivate = startMouseListeners
+	win.onDeactivate = stopMouseListeners
+
 	win.onResizing = mWin_refresh
 
 	//__INIT__
